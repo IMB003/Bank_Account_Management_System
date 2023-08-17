@@ -1,33 +1,82 @@
 #include <bits/stdc++.h>
+#include <fstream>
 using namespace std;
-
 int usr = 0;
-
 class Account
 {
+    vector<float> passbook;
     string name;
     int type;
     long int acno;
     float balance;
 
 public:
+    void printpassbook()
+    {
+        cout << "\nStarting Balance : " << passbook[0] << endl;
+        for (int i = 1; i < passbook.size(); i++)
+        {
+            if (passbook[i] > 0)
+            {
+                cout << name << " Deposited " << passbook[i] << endl;
+            }
+            else
+            {
+                cout << name << " Withdrew " << -passbook[i] << endl;
+            }
+        }
+    }
     void accept()
     {
         cout << "Enter name : ";
         cin >> name;
         cout << "Enter Account number : ";
         cin >> acno;
+        cout << "1.Current\n2.Savings\n3.Salary\nEnter Account type : ";
+        cin >> type;
         cout << "Enter Balance : ";
         cin >> balance;
+        passbook.push_back(balance);
     }
     void deposit()
     {
         int temp;
         cout << "Enter amount to deposit : ";
         cin >> temp;
+        try
         {
-            balance = balance + temp;
-            cout << "Account Balance : " << balance;
+            if (type == 1)
+            {
+                balance = balance + temp;
+                cout << "Account Balance : " << balance;
+                passbook.push_back(temp);
+            }
+            if (type == 2 && temp <= 10000)
+            {
+                balance = balance + temp;
+                cout << "Account Balance : " << balance;
+                passbook.push_back(temp);
+            }
+            else if (type == 2 && temp > 10000)
+            {
+                throw "You cannot deposit this amount in Savings
+                    account ";
+            }
+            if (type == 3 && temp <= 50000)
+            {
+                balance = balance + temp;
+                cout << "Account Balance : " << balance;
+                passbook.push_back(temp);
+            }
+            else if (type == 3 && temp > 50000)
+            {
+                throw "You cannot deposit this amount in Salary
+                    account ";
+            }
+        }
+        catch (const char *msg)
+        {
+            cerr << msg << endl;
         }
     }
     void withdraw()
@@ -35,45 +84,87 @@ public:
         int temp;
         cout << "Enter amount to withdraw : ";
         cin >> temp;
-        if (temp > balance)
+        try
         {
-            cout << "\nInsufficient Balance!!";
+            if (temp > balance)
+            {
+                throw "\nInsufficient Balance!!";
+            }
+            else
+            {
+                if (type == 1)
+                {
+                    balance = balance - temp;
+                    cout << "Account Balance : " << balance;
+                    passbook.push_back(-temp);
+                }
+                if (type == 2 && temp <= 10000)
+                {
+                    balance = balance - temp;
+                    cout << "Account Balance : " << balance;
+                    passbook.push_back(-temp);
+                }
+                else if (type == 2 && temp > 10000)
+                {
+                    throw "You cannot withdraw this amount from
+                        Savings account ";
+                }
+                if (type == 3 && temp <= 50000)
+                {
+                    balance = balance - temp;
+                    cout << "Account Balance : " << balance;
+                    passbook.push_back(-temp);
+                }
+                else if (type == 3 && temp > 50000)
+                {
+                    throw "You cannot withdraw this amount from Salary
+                        account ";
+                }
+            }
         }
-        else
+        catch (const char *msg)
         {
-            balance = balance - temp;
-            cout << "Account Balance : " << balance;
+            cerr << msg << endl;
         }
     }
     void display()
     {
         cout << "\nAccount Number : " << acno;
         cout << "\tName : " << name;
-        cout << "\tBalance : " << balance;
+        cout << "\nAccount Type : ";
+        if (type == 1)
+        {
+            cout << "Current";
+        }
+        else if (type == 2)
+        {
+            cout << "Savings";
+        }
+        else if (type == 3)
+        {
+            cout << "Salary";
+        }
+        cout << "\tBalance : " << balance << "\n\n";
     }
     long int getac()
     {
         return acno;
     }
-    void close_account()
-    {
-        int temp;
-        cout << "Withdrawing amount : " << balance;
-        balance = 0;
-        cout << "Account Closed";
-    }
 };
-
 int main()
 {
     int ch = 1, n, key, flag = 0;
     Account temp;
+    fstream file;
     vector<Account> bank;
     while (ch != 0)
     {
         flag = 0;
-        cout << "\n0.Exit\n1.Enter Records\n2.Display Records\n3.Deposit\n4.Withdraw\n5.Close Account\nEnter choice : ";
-        cin >> ch;
+        cout << "\n0.Exit\n1.Enter Records\n2.Display
+                Records\n3.Deposit\n4.Withdraw\n5.PassBook\n6.Store in file\nEnter
+                    choice : ";
+                             cin >>
+            ch;
         switch (ch)
         {
         case 0:
@@ -92,10 +183,13 @@ int main()
             break;
         case 2:
             cout << "\nDisplaying Records of all accounts :-\n";
+            file.open("bank.txt", ios::in);
             for (int i = 0; i < usr; i++)
             {
-                bank[i].display();
+                file.read((char *)&temp, sizeof(temp));
+                temp.display();
             }
+            file.close();
             break;
         case 3:
             cout << "Enter Account number : ";
@@ -136,7 +230,7 @@ int main()
             {
                 if (bank[i].getac() == key)
                 {
-                    bank[i].close_account();
+                    bank[i].printpassbook();
                     flag = 1;
                 }
             }
@@ -145,114 +239,17 @@ int main()
                 cout << "\nRecord not found!!";
             }
             break;
-
+        case 6:
+            file.open("Bank.txt", ios::out);
+            for (int i = 0; i < usr; i++)
+            {
+                file.write((char *)&bank[i], sizeof(bank[i]));
+            }
+            file.close();
+            cout << "\nFile write Successfull!!";
+            break;
         default:
             cout << "\nEnter a valid choice";
         }
     }
 }
-/*
-0.Exit
-1.Enter Records
-2.Display Records
-3.Deposit
-4.Withdraw
-5.Close Account
-Enter choice : 1
-
-Enter Number of Users : 5
-Enter name : Tarang
-Enter Account number : 1
-Enter Balance : 132222
-Enter name : Vatsal
-Enter Account number : 2
-Enter Balance : 444444
-Enter name : Jeel
-Enter Account number : 3
-Enter Balance : 43212
-Enter name : Keval
-Enter Account number : 4
-Enter Balance : 54323
-Enter name : Vandan
-Enter Account number : 5
-Enter Balance : 87654
-
-0.Exit
-1.Enter Records
-2.Display Records
-3.Deposit
-4.Withdraw
-5.Close Account
-Enter choice : 2
-
-Displaying Records of all accounts :-
-
-Account Number : 1      Name : Tarang   Balance : 132222
-Account Number : 2      Name : Vatsal   Balance : 444444
-Account Number : 3      Name : Jeel     Balance : 43212
-Account Number : 4      Name : Keval    Balance : 54323
-Account Number : 5      Name : Vandan   Balance : 87654
-0.Exit
-1.Enter Records
-2.Display Records
-3.Deposit
-4.Withdraw
-5.Close Account
-Enter choice : 3
-Enter Account number : 1
-Enter amount to deposit : 10000
-Account Balance : 142222
-0.Exit
-1.Enter Records
-2.Display Records
-3.Deposit
-4.Withdraw
-5.Close Account
-Enter choice : 4
-Enter Account number : 3
-Enter amount to withdraw : 50000
-
-Insufficient Balance!!
-0.Exit
-1.Enter Records
-2.Display Records
-3.Deposit
-4.Withdraw
-5.Close Account
-Enter choice : 4
-Enter Account number : 2
-Enter amount to withdraw : 20000
-Account Balance : 424444
-0.Exit
-1.Enter Records
-2.Display Records
-3.Deposit
-4.Withdraw
-5.Close Account
-Enter choice : 2
-
-Displaying Records of all accounts :-
-
-Account Number : 1      Name : Tarang   Balance : 142222
-Account Number : 2      Name : Vatsal   Balance : 424444
-Account Number : 3      Name : Jeel     Balance : 43212
-Account Number : 4      Name : Keval    Balance : 54323
-Account Number : 5      Name : Vandan   Balance : 87654
-0.Exit
-1.Enter Records
-2.Display Records
-3.Deposit
-4.Withdraw
-5.Close Account
-Enter choice : 5
-Enter Account number : 5
-Withdrawing amount : 87654Account Closed
-0.Exit
-1.Enter Records
-2.Display Records
-3.Deposit
-4.Withdraw
-5.Close Account
-Enter choice : 0
-Thank You!!
-*/
